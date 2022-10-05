@@ -9,7 +9,6 @@ output:
     variant: markdown_github
 always_allow_html: true
 ---
-#test
 ## Introduction
 In this section of the workflow, we will obtain the metabolomics data and apply filtering options, to create a dataset ready for further statistical and pathway analysis.
 
@@ -53,9 +52,15 @@ metaDataMBX<- subset(metaDataMBX, metaDataMBX$visit_num == 4)
 #we should match transcriptomics (htx) samples and metabolomics (mbx) samples with participantID
 #but samples are given by their externalID in mbx file so we should keep them both
 #select columns which will be used
-metaDataMBX <- metaDataMBX %>% dplyr::select(External.ID,Participant.ID,diagnosis)
+metaDataMBX <- metaDataMBX %>% dplyr::select(External.ID,Participant.ID,diagnosis,Yogurt.or.other.foods.containing.active.bacterial.cultures..kefir..sauerkraut.)
 #rename columns of metaDataMBX
-colnames(metaDataMBX) <- c("ExternalID","ParticipantID","disease" )
+colnames(metaDataMBX) <- c("ExternalID","ParticipantID","disease","Yogurt consumption")
+
+#filter out patients with UC (only want to compare non-IBD vs CD patients)
+metaDataMBX <- subset(metaDataMBX, metaDataMBX$disease == "CD" | metaDataMBX$disease == "nonIBD")
+
+#delete patients for which no data on yoghurt consumption is available  
+#metaDataMBX<- metaDataMBX[!(metaDataMBX$Yogurt.or.other.foods.containing.active.bacterial.cultures..kefir..sauerkraut.=="") , ]
 
 #download and read metabolomics peak intensity data
 if(file.exists("data/metabolomics.csv.gz")){print("Metabolomics zipped data already downloaded")}else{
@@ -106,7 +111,7 @@ colnames(mbxData)[2] <- "Compound.Name"
 
 #add disease labels to the mbx data
 diseaseLabels <- metaDataMBX$disease
-##Add two empty strings to macth with additional column data.
+#Add two empty strings to match with additional column data.
 diseaseLabels <- append(diseaseLabels, "NA",after = 0)
 diseaseLabels <- append(diseaseLabels, "NA",after = 0)
 mbxData <- rbind(diseaseLabels, mbxData)
@@ -114,20 +119,23 @@ mbxData <- rbind(diseaseLabels, mbxData)
 
 ## Fourth, we split up the data for UC and CD, include the control data nonIBD, and save this data to an output folder.
 ```{r writing_to_file,warning=FALSE, message=FALSE }
-#write only UC versus nonIBD comparison
-mbxDataUC <- mbxData[ ,(mbxData[1, ] == "UC" | mbxData[1, ] == "nonIBD")]
-#add hmdb id again
-mbxDataUC <- cbind(mbxData[,1:2],mbxDataUC)
-colnames(mbxDataUC)[1]="HMBDB.ID"
-colnames(mbxDataUC)[2] <- "Compound.Name"
-write.table(mbxDataUC, "output/mbxDataUC_nonIBD.csv", sep =",", row.names = FALSE)
+#write only CD versus nonIBD comparison
+mbxDataCDnonIBD <- mbxData[ ,(mbxData[1, ] == "CD" | mbxData[1, ] == "nonIBD")]
+#add hmdb ID again
+mbxDataCDnonIBD <- cbind(mbxData[,1:2],mbxDataCDnonIBD)
+colnames(mbxDataCDnonIBD)[1]="HMBDB.ID"
+colnames(mbxDataCDnonIBD)[2] <- "Compound.Name"
+write.table(mbxDataCDnonIBD, "output/mbxDataUC_nonIBD.csv", sep =",", row.names = FALSE)
+#confused about what row 128 does
 
+
+#DELETING THIS STEP BECAUSE NOT RELEVANT FOR NOW 
 #write only CD_healthy comparison
-mbxDataCD <- mbxData[ ,(mbxData[1, ] == "CD" | mbxData[1, ] == "nonIBD")]
-mbxDataCD <- cbind(mbxData[,1:2],mbxDataCD)
-colnames(mbxDataCD)[1]="HMBDB.ID"
-colnames(mbxDataCD)[2] <- "Compound.Name"
-write.table(mbxDataCD, "output/mbxDataCD_nonIBD.csv", sep =",", row.names = FALSE)
+#mbxDataCD <- mbxData[ ,(mbxData[1, ] == "CD" | mbxData[1, ] == "nonIBD")]
+#mbxDataCD <- cbind(mbxData[,1:2],mbxDataCD)
+#colnames(mbxDataCD)[1]="HMBDB.ID"
+#colnames(mbxDataCD)[2] <- "Compound.Name"
+#write.table(mbxDataCD, "output/mbxDataCD_nonIBD.csv", sep =",", row.names = FALSE)
 
 ```
 
