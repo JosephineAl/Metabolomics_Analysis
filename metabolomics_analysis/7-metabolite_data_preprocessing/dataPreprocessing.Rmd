@@ -23,8 +23,8 @@ if(!"markdown" %in% installed.packages()){install.packages("markdown")}
 if(!"rmarkdown" %in% installed.packages()){install.packages("rmarkdown")}
 if(!"stringr" %in% installed.packages()){install.packages("stringr")}
 #load libraries
-library(rstudioapi)
-library(dplyr)
+library(rstudioapi) 
+library(dplyr) 
 library(stringr)
 # set your working environment to the location where your current source file is saved into.
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
@@ -60,7 +60,7 @@ colnames(metaDataMBX) <- c("ExternalID","ParticipantID","disease","Yogurt consum
 metaDataMBX <- subset(metaDataMBX, metaDataMBX$disease == "CD" | metaDataMBX$disease == "nonIBD")
 
 #delete patients for which no data on yoghurt consumption is available  
-#metaDataMBX<- metaDataMBX[!(metaDataMBX$Yogurt.or.other.foods.containing.active.bacterial.cultures..kefir..sauerkraut.=="") , ]
+metaDataMBX<- metaDataMBX[!(metaDataMBX$Yogurt.or.other.foods.containing.active.bacterial.cultures..kefir..sauerkraut.=="") , ]
 
 #download and read metabolomics peak intensity data
 if(file.exists("data/metabolomics.csv.gz")){print("Metabolomics zipped data already downloaded")}else{
